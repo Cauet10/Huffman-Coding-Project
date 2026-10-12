@@ -3,20 +3,20 @@
 #define Leitura_h
 
 
-#define headersize 2
-#define bytesize 8
-#define TotaldeBytes 256
+#define headerSize 2
+#define byteSize 8
+#define totaldeBytes 256
 
-
+// fiz os nomes de funcao em camelCase pq acho agradavel
 typedef struct buffer
 {
-    void *bytes; //pra guardar os bytes do arquivo lido
+    void *bytes; //pra guardar o endereço dos bytes do arquivo lido
     int tamanho; // o tamano do arquivbo
 }bufferDoArquivo;
 
 bufferDoArquivo* initBuffer(int tamanho);
 
-void adcionaraobuffer(bufferDoArquivo *buffer, void* byte);
+void adcionaraoBuffer(bufferDoArquivo *buffer, void* byte);
 
 void exterminarBuffer(bufferDoArquivo *buffer);
 
@@ -24,6 +24,6 @@ bufferDoArquivo* lerArquivo(char enderecoDoArquivo[]);
 
 //a quantidade de bytes diferentes que podemos ter, combinacoes de 2^8
 
-void ContarFrequencias(bufferDoArquivo* caminho, unsigned long long frequencias[TotaldeBytes]);
+void mensagemDeErro(char mensagem[]);
 
 #endif
