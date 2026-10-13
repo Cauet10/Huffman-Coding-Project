@@ -1,1 +1,6 @@
-tasks.json
+.vscode/
+*.exe
+*.o
+build/
+*.huff
+testes_leitura/
