@@ -33,9 +33,9 @@ typedef struct huffmanNode
     void *valor; //valor do byte original guardado pelo respectivo no
     int frequencia; // frequencia do item nesse arquivo
     
-    struct no *next;
-    struct no *left;
-    struct no *right;
+    struct huffmanNode * next;
+    struct huffmanNode * left;
+    struct huffmanNode * right;
 }huffmanNode;
 
 hashDeFrequencia* initHash();
@@ -44,13 +44,13 @@ void aniquilarHash(hashDeFrequencia * h);
 
 huffmanNode *criarNode(void *byte,int frequencia);
 
-void adicionar(hashDeFrequencia* h, void* byte);
+void adicionar(hashDeFrequencia* h, void* byteKey);
 
 void trocarKeys(unsigned char *array,int idxA,int idxB);
 
 int comparar(hashDeFrequencia* h, unsigned char keyA, unsigned char keyB);
 
-void ordenarKeys(hashDeFrequencia* h,bufferDoArquivo *b);
+void ordenarKeys(hashDeFrequencia *h, int inicio, int fim, int (*funcaoComparar)(hashDeFrequencia*, unsigned char, unsigned char));
 
 void popularFrequencia(hashDeFrequencia* h, bufferDoArquivo *b);
 
@@ -62,7 +62,7 @@ huffmanNode* inserirHuffmanNode(huffmanNode* head, huffmanNode* newNode);
 
 huffmanNode* criarNoDeFusao(huffmanNode* primeiro, huffmanNode* segundo);
 
-void criarHuffmanTabkle(char *table[tamanhoHash], huffmanNode *NoDaArvore, char *c);
+void criarHuffmanTable(char *table[tamanhoHash], huffmanNode *NoDaArvore, char *c);
 
 
 

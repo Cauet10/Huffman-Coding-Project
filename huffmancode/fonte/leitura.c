@@ -39,7 +39,7 @@ bufferDoArquivo *initBuffer(int tamanho)
 /**
  * @brief desaloca o espaco alocado para bufferDoArquivo
  * 
- * @param buffer objeto a ser desalocado da strct
+ * @param buffer buffer a ser EXTERMINADO da memoria
  */
 void exterminarBuffer(bufferDoArquivo* buffer)
 {
