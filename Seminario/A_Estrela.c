@@ -6,44 +6,55 @@
 
 /*Esta parte do código é referente as structs necessárias para o calculo da posição, estado do nó, nó e heap*/
 
+//Coordenada de uma célula: x = linha, y = coluna
 typedef struct Position
 {
     int x;
     int y;
 }Position;
 
+//Estado de um nó durante a busca
 typedef enum node_state
 {
-    node_unseen = 0,
-    node_open,
-    node_closed
+    node_unseen = 0, //Nó não descoberto
+    node_open,       //Nó descoberto, mas não expandido
+    node_closed      //Nó expandido
 }node_state;
 
+//Nó do A*
 typedef struct node
 {
-    Position position;
-    double g;
-    double h;
-    double f;
-    struct node *parent;
-    node_state state;
+    Position position; //Coordenadas do nó
+    double g; //Custo real do início até este nó
+    double h; //Custo estimado (heurística) deste nó até o alvo
+    double f; //f = g + h, prioridade do nó na fila
+    struct node *parent; //Nó anterior no melhor caminho (inicialmente é nulo)
+    node_state state; //Estado do nó: não visto, aberto ou fechado
 }node;
 
+//Entrada da fila de prioridade: valor de f e índice do nó no vetor
 typedef struct heap_entry
 {
     double f;
     int index;
 }heap_entry;
 
+//Fila de prioridade (min-heap binário)
 typedef struct min_heap
 {
-    heap_entry *data;
-    int size;
-    int capacity;
+    heap_entry *data; //Vetor dinâmico com as entradas
+    int size; //Quantidade de entradas atualmente armazenadas
+    int capacity; //Capacidade alocada do vetor
 }min_heap;
 
 /*Esta parte do código é referente as funções de heap (fila de prioridades) que serão usadas nas funções do A* */
 
+/**
+ * @brief inicializa uma fila de prioridade vazia
+ * 
+ * @param heap ponteiro para a fila a ser inicializada
+ * @param capacity capacidade inicial (o vetor cresce automaticamente)
+ */
 static void heap_begin(min_heap *heap, int capacity)
 {
     if (capacity < 16)
@@ -61,6 +72,11 @@ static void heap_begin(min_heap *heap, int capacity)
     heap->capacity = capacity;
 }
 
+/**
+ * @brief libera a memória usada pela fila
+ * 
+ * @param heap fila a ser liberada
+ */
 static void free_heap(min_heap *heap)
 {
     free(heap->data);
@@ -68,6 +84,13 @@ static void free_heap(min_heap *heap)
     heap->size = heap->capacity = 0;
 }
 
+/**
+ * @brief insere uma entrada na fila mantendo a propriedade de min-heap
+ * 
+ * @param heap fila onde inserir
+ * @param f prioridade (custo total estimado) da entrada
+ * @param index índice do nó correspondente no vetor de nós
+ */
 static void heap_push(min_heap *heap, double f, int index)
 {
     if (heap->size == heap->capacity)
@@ -100,6 +123,13 @@ static void heap_push(min_heap *heap, double f, int index)
     heap->data[i].index = index;
 }
 
+/**
+ * @brief remove e devolve a entrada com menor valor de f
+ * 
+ * @param heap fila de onde remover
+ * 
+ * @return entrada de menor prioridade
+ */
 static heap_entry heap_pop(min_heap *heap)
 {
     heap_entry top = heap->data[0];
@@ -139,6 +169,14 @@ static heap_entry heap_pop(min_heap *heap)
 
 /*Esta parte do código é referente as funções do A* */
 
+/**
+ * @brief cria e devolve um nó do A* já com f = g + h calculado
+ * 
+ * @param position coordenadas (x, y) do nó
+ * @param g custo do início até este nó
+ * @param h custo estimado deste nó até o objetivo (heurística)
+ * @param parent ponteiro para o nó anterior no caminho (se não houver, é nulo)
+ */
 static node create_node(Position position, double g, double h, node *parent)
 {
     node node;
@@ -151,6 +189,14 @@ static node create_node(Position position, double g, double h, node *parent)
     return node;
 }
 
+/**
+ * @brief estima a distância entre dois pontos usando a distância euclidiana
+ * 
+ * @param pos1 primeira posição (x1, y1)
+ * @param pos2 segunda posição (x2, y2)
+ * 
+ * @return square root((x2 - x1)^2 + (y2 - y1)^2)
+ */
 static double heuristic(Position pos1, Position pos2)
 {
     double dx = (double)(pos2.x - pos1.x);
@@ -158,7 +204,17 @@ static double heuristic(Position pos1, Position pos2)
     return sqrt(pow(dx,2) + pow(dy,2));
 }
 
-//Funçao para obter os vizinhos válidos de uma célula, ou seja, os que não são obstáculos
+/**
+ * @brief obtém os vizinhos válidos de uma célula, isto é, dentro dos limites da grade e que não sejam obstáculos
+ * 
+ * @param grid grade 2D linearizada (0 = livre, 1 = obstáculo)
+ * @param rows número de linhas da grade
+ * @param collums número de colunas da grade
+ * @param position célula atual (x, y)
+ * @param neighbors vetor de saída com capacidade para pelo menos 8 posições, recebe vizinhos válidos
+ * 
+ * @return quantidade de vizinhos válidos escritos em 'neighbors' (0 a 8)
+ */
 static int valid_neighbors(const int *grid, int rows, int collums, Position position, Position neighbors[8])
 {
     //Grid 2d dos vizinhos
@@ -188,7 +244,15 @@ static int valid_neighbors(const int *grid, int rows, int collums, Position posi
     return count;
 }
 
-static Position *reconstruct_path(const node *goal_node, int *lenght)
+/**
+ * @brief reconstrói o caminho seguindo os ponteiros 'parent' do nó objetivo até o nó inicial, e devolve o caminho na ordem início -> objetivo
+ * 
+ * @param goal_node nó objetivo (ponto de partida da reconstrução)
+ * @param lenght ponteiro de saída que recebe o número de posições do caminho
+ * 
+ * @return vetor alocado com malloc contendo o caminho ou NULL em caso de falha de alocação
+ */
+static Position *reconstruct_path(const node *goal_node, int *length)
 {
     int count = 0;
     for (const node *n = goal_node; n != NULL; n = n->parent)
@@ -199,7 +263,7 @@ static Position *reconstruct_path(const node *goal_node, int *lenght)
     Position *path = (Position*) malloc((size_t)count * sizeof(Position));
     if (path == NULL)
     {
-        *lenght = 0;
+        *length = 0;
         return NULL;
     }
 
@@ -209,10 +273,23 @@ static Position *reconstruct_path(const node *goal_node, int *lenght)
         path[i--] = n->position;
     }
 
-    *lenght = count;
+    *length = count;
     return path;
 }
 
+/**
+ * @brief encontra o caminho de menor custo entre 'start' e 'goal' usando o algoritmo A*
+ * 
+ * @param grid grade 2D linearizada (0 = livre, 1 = obstáculo), com rows * cols elementos em ordem row-major
+ * @param rows número de linhas da grade
+ * @param collums número de colunas da grade
+ * @param start posição inicial (x, y)
+ * @param goal posição objetivo (x, y)
+ * @param path_length ponteiro de saída com o número de posições do caminho (0 se não houver caminho)
+ * 
+ * @return vetor alocado com malloc com as posições do caminho, de 'start' até 'goal', 
+ * retorna NULL se não existir caminho, se start/goal forem inválidos ou em caso de erro de memória
+ */
 static Position *find_path(const int *grid, int rows, int collums, Position start, Position goal, int *path_length)
 {
     *path_length = 0;
@@ -313,6 +390,17 @@ static Position *find_path(const int *grid, int rows, int collums, Position star
     return result;
 }
 
+/**
+ * @brief imprime a grade e o caminho encontrado no terminal
+ * 
+ * legenda: '#' obstáculo, '.' livre, '*' caminho, 'S' início, 'G' objetivo
+ * 
+ * @param grid grade 2D linearizada (0 = livre, 1 = obstáculo)
+ * @param rows número de linhas da grade
+ * @param collums número de colunas da grade 
+ * @param path vetor com as posições do caminho (pode ser NULL)
+ * @param path_length quantidade de posições em 'path'
+ */
 static void visualize_path(const int *grid, int rows, int collums, const Position *path, int path_length)
 {
     char *canvas = (char*) malloc((size_t)rows * collums);
@@ -376,11 +464,18 @@ int main(void)
         return 1;
     }
 
-    int n_obstacles = read_int("Digite a quantidade de obstaculos:\n");
+    int n_obstacles;
+    printf("Digite a quantidade de obstaculos:\n");
+    scanf("%d", &n_obstacles);
     for (int i = 0; i < n_obstacles; i++)
     {
-        int ox = read_int("Obstaculo - linha:\n");
-        int oy = read_int("Obstaculo - coluna:\n");
+        int ox;
+        printf("Obstaculo - linha:\n");
+        scanf("%d", &ox);
+
+        int oy;
+        printf("Obstaculo - coluna:\n");
+        scanf("%d", &oy);
         if (ox < 0 || ox >= rows || oy < 0 || oy >= collums)
         {
             fprintf(stderr, "Obstaculo (%d, %d) fora da grade, ignorado.\n", ox, oy);
@@ -390,10 +485,21 @@ int main(void)
     }
  
     Position start, goal;
-    start.x = read_int("Linha inicial:\n");
-    start.y = read_int("Coluna inicial:\n");
-    goal.x = read_int("Linha do objetivo:\n");
-    goal.y = read_int("Coluna objetivo:\n");
+    start.x;
+    printf("Linha inicial:\n");
+    scanf("%d", &start.x);
+
+    start.y;
+    printf("Coluna inicial:\n");
+    scanf("%d", &start.y);
+
+    goal.x;
+    printf("Linha do objetivo:\n");
+    scanf("%d", &goal.x);
+    
+    goal.y;
+    printf("Coluna objetivo:\n");
+    scanf("%d", &goal.y);
  
     int length = 0;
     Position *path = find_path(grid, rows, collums, start, goal, &length);
