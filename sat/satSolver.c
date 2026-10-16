@@ -36,12 +36,14 @@ node *adicionarNode(arvore *header, node *atual, int indexVar, bool valor)
     node *novoNode = criarNode(indexVar, valor);
     if(valor == true)
     {
+        header->interpretacaoParcial[indexVar] = 1;
         atual->left = novoNode;
     }
     else // se for 0;
     {
+        header->interpretacaoParcial[indexVar] = -1;
         atual->right = novoNode;
-        
+
     }
     return novoNode;
 }
@@ -70,9 +72,8 @@ bool satisfas(int numeroClausulas, int numLiterais, int formula[numeroClausulas]
         {
             return false;
         }
-        return true;
     }
-
+    return true;
 }
 
 bool contradiz(int numClausulas,int numLiterais, int formula[numClausulas][numLiterais],int interpParcial[maxInterpParcial])
@@ -124,11 +125,11 @@ bool contradiz(int numClausulas,int numLiterais, int formula[numClausulas][numLi
  */
 bool sat(int numClausulas,int numLiterais, int formula[numClausulas][numLiterais], arvore *header, node *atual, int varIndxex)
 {
-    if (satisfas( numClausulas,  numLiterais, formula[numClausulas][numLiterais],header->interpretacaoParcial) )
+    if (satisfas( numClausulas,  numLiterais, formula,header->interpretacaoParcial) )
     {
         return true;
     }
-    if (contradiz(numClausulas, numLiterais, formula[numClausulas][numLiterais],header->interpretacaoParcial))
+    if (contradiz(numClausulas, numLiterais, formula,header->interpretacaoParcial))
     {
         return false;
     }
@@ -191,27 +192,28 @@ void lerInput(int *literal, int *clausula)
         if (comando == 'p')
         {
             scanf("%s",forma);
+            if (strcmp(forma,"cnf") != 0)
+            {
+                mensagemDeErro("Forma invalida! use 'cnf'");
+            }
+            scanf("%d %d", literal, clausula);
+            if (*literal <= 0)
+            {
+                mensagemDeErro("\n numero de lierais invalido! use um valor valido ");
+            }
+            if (*clausula <= 0)
+            {
+                mensagemDeErro("\n Numero de clausulas invalido! use um numero de clausulas valido");
+            }
+            break;
         }
-        if (strcmp(forma,"cnf") != 0)
-        {
-            mensagemDeErro("Forma invalida! use 'cnf'");
-        }
-        if (*literal <= 0)
-        {
-            mensagemDeErro("\n numero de lierais invalido! use um valor valido ");
-        }
-        if (*clausula <= 0)
-        {
-            mensagemDeErro("\n Numero de clausulas invalido! use um numero de clausulas valido");
-        }
-        printf("\n");
-
-        return;
-        
     }
+    printf("\n");
+
+    return;
 }
 
-void lerFormula(int numLiteral, int numClausula, int formula[numClausula][numLiteral])
+void lerFormula(int numClausula, int numLiteral, int formula[numClausula][numLiteral])
 {
     //inicializa a matriz com tudo zerado
     memset(formula,0, numClausula * numLiteral * sizeof(int));
@@ -242,7 +244,7 @@ void lerFormula(int numLiteral, int numClausula, int formula[numClausula][numLit
         }
         if (aux < 0 )
         {
-            if (formula[i][-aux] == 1)
+            if (formula[i][-aux-1] == 1)
             {
                 tautologia = 1;
             }
@@ -250,9 +252,14 @@ void lerFormula(int numLiteral, int numClausula, int formula[numClausula][numLit
         }
     }
 
-    return;
-}
+    if (tautologia)
+    {
+        memset(formula[i], 0, numLiteral * sizeof(int));
+        formula[i][0] = 2;
+    }
+    }
 
+    return;
 }
 
 
@@ -305,7 +312,7 @@ int main()
     lerFormula(numClausulas, numLiterais, formula);
     imprimirFormula(numClausulas, numLiterais, formula);
 
-    arvore *header = inicializarArvore(numLiterais);
+    arvore *header = initArvore(numLiterais);
     bool resultado = sat(numClausulas, numLiterais, formula, header, header->raiz, 0);
     imprimirResultado(resultado, header);
 
