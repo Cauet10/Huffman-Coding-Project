@@ -36,12 +36,14 @@ node *adicionarNode(arvore *header, node *atual, int indexVar, bool valor)
     node *novoNode = criarNode(indexVar, valor);
     if(valor == true)
     {
+        header->interpretacaoParcial[indexVar] = 1;
         atual->left = novoNode;
     }
     else // se for 0;
     {
+        header->interpretacaoParcial[indexVar] = -1;
         atual->right = novoNode;
-        
+
     }
     return novoNode;
 }
@@ -70,9 +72,8 @@ bool satisfas(int numeroClausulas, int numLiterais, int formula[numeroClausulas]
         {
             return false;
         }
-        return true;
     }
-
+    return true;
 }
 
 bool contradiz(int numClausulas,int numLiterais, int formula[numClausulas][numLiterais],int interpParcial[maxInterpParcial])
@@ -124,11 +125,11 @@ bool contradiz(int numClausulas,int numLiterais, int formula[numClausulas][numLi
  */
 bool sat(int numClausulas,int numLiterais, int formula[numClausulas][numLiterais], arvore *header, node *atual, int varIndxex)
 {
-    if (satisfas( numClausulas,  numLiterais, formula[numClausulas][numLiterais],header->interpretacaoParcial) )
+    if (satisfas( numClausulas,  numLiterais, formula,header->interpretacaoParcial) )
     {
         return true;
     }
-    if (contradiz(numClausulas, numLiterais, formula[numClausulas][numLiterais],header->interpretacaoParcial))
+    if (contradiz(numClausulas, numLiterais, formula,header->interpretacaoParcial))
     {
         return false;
     }
@@ -162,7 +163,17 @@ arvore *initArvore(int qVariaveis)
     return arvoreNova;
     }
 
-
+/**
+ * @brief funcao simples que exibe uma string, usado principalmente para erros, 
+ * principalmente : ENCERRA O PROGRAMA
+ * 
+ * @param mensagem string a ser printada
+ */
+void mensagemDeErro(char mensagem[])
+{
+    printf("%s\n",mensagem);
+    exit(EXIT_FAILURE);
+}
 void lerInput(int *literal, int *clausula)
 {
     char comando;
@@ -174,9 +185,136 @@ void lerInput(int *literal, int *clausula)
         if (comando == 'c')
         {
            fgets(comentario, sizeof(comentario),stdin);
+           comentario[strlen(comentario) - 1] = '\0';
+           printf("=== %s ===\n",comentario +1);// +1 pra tirar o espaco do buffer começando a partir do 2 caracter (indice 1)
+
         }
-        comentario[strlen(comentario) - 1] = '\0';
+        if (comando == 'p')
+        {
+            scanf("%s",forma);
+            if (strcmp(forma,"cnf") != 0)
+            {
+                mensagemDeErro("Forma invalida! use 'cnf'");
+            }
+            scanf("%d %d", literal, clausula);
+            if (*literal <= 0)
+            {
+                mensagemDeErro("\n numero de lierais invalido! use um valor valido ");
+            }
+            if (*clausula <= 0)
+            {
+                mensagemDeErro("\n Numero de clausulas invalido! use um numero de clausulas valido");
+            }
+            break;
+        }
     }
+    printf("\n");
+
+    return;
+}
+
+void lerFormula(int numClausula, int numLiteral, int formula[numClausula][numLiteral])
+{
+    //inicializa a matriz com tudo zerado
+    memset(formula,0, numClausula * numLiteral * sizeof(int));
+
+    for (int i = 0; i < numClausula; i++)
+    {
+        int aux, tautologia = 0;
     
-    
+    while (1)
+    {
+        scanf("%d",&aux);
+
+        if (aux == 0) // fim da clausula
+        {
+            break;
+        }
+        if (aux > 0)
+        {
+            if (formula)
+            {
+                if (formula[i][aux-1]  == -1)
+                {
+                    tautologia = 1;
+                }
+                
+            }
+            formula[i][aux-1] = 1;
+        }
+        if (aux < 0 )
+        {
+            if (formula[i][-aux-1] == 1)
+            {
+                tautologia = 1;
+            }
+            formula[i][-aux-1] = -1;
+        }
+    }
+
+    if (tautologia)
+    {
+        memset(formula[i], 0, numLiteral * sizeof(int));
+        formula[i][0] = 2;
+    }
+    }
+
+    return;
+}
+
+
+void imprimirFormula(int numClausulas, int numLiterais, int formula[numClausulas][numLiterais])
+{
+    printf("=== Fórmula na Memória: ===\n");
+    for (int i = 0; i < numClausulas; i++)
+    {
+        for (int j = 0; j < numLiterais; j++)
+        {
+            printf("%d ", formula[i][j]);
+        }
+        printf("\n");
+    }
+    printf("\n");
+
+    return;
+}
+
+void imprimirResultado(bool resultado, arvore *header)
+{
+    if (resultado)
+    {
+        printf("SATISFIABLE\n");
+        for (int i = 0; i < header->qVariaveis; i++)
+        {
+            if (header->interpretacaoParcial[i] != 0)
+            {
+                printf("X%d: %d ", i + 1, header->interpretacaoParcial[i]);
+            }
+        }
+        printf("\n");
+    }
+    else
+    {
+        printf("UNSATISFIABLE\n");
+    }
+
+    return;
+}
+
+int main()
+{
+    int numLiterais;
+    int numClausulas;
+
+    lerInput(&numLiterais, &numClausulas);
+
+    int formula[numClausulas][numLiterais];
+    lerFormula(numClausulas, numLiterais, formula);
+    imprimirFormula(numClausulas, numLiterais, formula);
+
+    arvore *header = initArvore(numLiterais);
+    bool resultado = sat(numClausulas, numLiterais, formula, header, header->raiz, 0);
+    imprimirResultado(resultado, header);
+
+    return 0;
 }
