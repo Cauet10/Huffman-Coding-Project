@@ -248,7 +248,7 @@ static int valid_neighbors(const int *grid, int rows, int collums, Position posi
  * @brief reconstrói o caminho seguindo os ponteiros 'parent' do nó objetivo até o nó inicial, e devolve o caminho na ordem início -> objetivo
  * 
  * @param goal_node nó objetivo (ponto de partida da reconstrução)
- * @param lenght ponteiro de saída que recebe o número de posições do caminho
+ * @param length ponteiro de saída que recebe o número de posições do caminho
  * 
  * @return vetor alocado com malloc contendo o caminho ou NULL em caso de falha de alocação
  */
@@ -280,7 +280,7 @@ static Position *reconstruct_path(const node *goal_node, int *length)
 /**
  * @brief encontra o caminho de menor custo entre 'start' e 'goal' usando o algoritmo A*
  * 
- * @param grid grade 2D linearizada (0 = livre, 1 = obstáculo), com rows * cols elementos em ordem row-major
+ * @param grid grade 2D linearizada (0 = livre, 1 = obstáculo), com rows * collums elementos em ordem row-major
  * @param rows número de linhas da grade
  * @param collums número de colunas da grade
  * @param start posição inicial (x, y)
@@ -485,19 +485,15 @@ int main(void)
     }
  
     Position start, goal;
-    start.x;
     printf("Linha inicial:\n");
     scanf("%d", &start.x);
 
-    start.y;
     printf("Coluna inicial:\n");
     scanf("%d", &start.y);
 
-    goal.x;
     printf("Linha do objetivo:\n");
     scanf("%d", &goal.x);
-    
-    goal.y;
+
     printf("Coluna objetivo:\n");
     scanf("%d", &goal.y);
  
@@ -521,5 +517,6 @@ int main(void)
     visualize_path(grid, rows, collums, path, length);
  
     free(path);
+    free(grid);
     return 0;
 }
