@@ -171,11 +171,11 @@ void lerInput(int *literal, int *clausula)
 
     while (scanf(" %c", &comando) != EOF)
     {
-        if (cmd == "sair")
+        if (comando == 'c')
         {
-            /* code */
+           fgets(comentario, sizeof(comentario),stdin);
         }
-        
+        comentario[strlen(comentario) - 1] = '\0';
     }
     
     
