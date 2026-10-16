@@ -3,11 +3,6 @@
 #include <string.h>
 #include <stdbool.h>
 
-/**
- * AVISO: Atualmente o código não está redigido inteiramente em JAVADOC,
- * ao finalizar e estudar corretamente irei reescrever os comentários
- */
-
 #define MAX 100010 // tamanho máximo
 #define NEUTRO 0   // elemento neutro para operações, como a operação que queremos é a soma, NEUTRO = 0
 
@@ -15,9 +10,11 @@ int vet[MAX], tree[4 * MAX]; // vetor inicial e árvore, multiplicar MAX por 4 g
 
 
 /**
- * @brief soma o filho esquerdo e o direito e retorna o valor do nó pai
+ * @brief soma o filho esquerdo e o direito e retorna o valor do nó pai 
  * 
  * @param left se refere ao filho esquerdo e @param right se refere ao filho direito
+ * 
+ * @return retorna a soma do filho esquerdo e do filho direito
  */
 int soma(int left, int right)
 {
@@ -25,7 +22,7 @@ int soma(int left, int right)
 }
 
 /**
- * @brief constroi a árvore de forma recursiva a partir do vetor inicial
+ * @brief constroi a árvore de forma recursiva a partir do vetor inicial O(n)
  * 
  * @param node indice do nó atual, onde seus filhos são left = 2 * node + 1 e right = 2 * node + 2
  * @param l limite esquerdo do segmento representado pelo nó
@@ -51,7 +48,7 @@ void build(int node, int l, int r)
 }
 
 /**
- * @brief substitui o valor 'idx' por 'v' e refaz os nós afetados
+ * @brief substitui o valor 'idx' por 'v' e refaz os nós afetados O(log n)
  * 
  * @param node indice do nó atual
  * @param tl limite esquerdo do segmento representado pelo nó (tree left)
@@ -86,13 +83,15 @@ void update(int node, int tl, int tr, int idx, int v)
 }
 
 /**
- * @brief retorna a soma dos elementos do vetor no intervalo [l, r]
+ * @brief retorna a soma dos elementos do vetor dentro de um intervalo O(log n)
  * 
  * @param node indice do nó atual
  * @param tl limite esquerdo do segmento representado pelo nó
  * @param tr limite direito do segmento representado pelo nó
  * @param l limite esquerdo do intervalo
  * @param r limite direito do intervalo
+ * 
+ * @return retorna a soma dos elementos do vetor no intervalo [l, r]
  */
 int query(int node, int tl, int tr, int l, int r)
 {
