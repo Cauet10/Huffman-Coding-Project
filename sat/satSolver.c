@@ -22,6 +22,13 @@ typedef struct arvore
     int interpretacaoParcial[maxInterpParcial];
 }arvore;
 
+/**
+ * @brief cria um novo no
+ * 
+ * @param indexDaVar  index da variavel na interpretacao parcial
+ * @param valor booleano associado a variavel
+ * @return node* novo no
+ */
 node* criarNode(int indexDaVar, bool valor)
 {
     node *novoNode = calloc(1,sizeof(node));
@@ -31,6 +38,15 @@ node* criarNode(int indexDaVar, bool valor)
     return novoNode;
 }
 
+/**
+ * @brief addiciona um novo no a arvore
+ * 
+ * @param header header da arvore
+ * @param atual no pai, que recebe o novo no como filho
+ * @param indexVar index da variavel na interpretacao parcial
+ * @param valor valor booleano associado a variavel
+ * @return node* 
+ */
 node *adicionarNode(arvore *header, node *atual, int indexVar, bool valor)
 {
     node *novoNode = criarNode(indexVar, valor);
@@ -47,14 +63,24 @@ node *adicionarNode(arvore *header, node *atual, int indexVar, bool valor)
     }
     return novoNode;
 }
-
-bool satisfas(int numeroClausulas, int numLiterais, int formula[numeroClausulas][numLiterais], int interpParcial[maxInterpParcial])
+/**
+ * @brief a funcao testa se a formula, com a atual interpretacao parcial, eh verdadeira, 
+ * analogo a um gabarito, sendo a interpretacao parcial nossa folha de respostas a ser comparada
+ * 
+ * @param numeroClausulas numero de clausulas
+ * @param numVariaveis numero de variaveis
+ * @param formula matriz onde a formula eh guardada
+ * @param interpParcial lista (vetor) da interpretacao parcial
+ * @return true  se a formula for verdadeira com a Int Parcial
+ * @return false  se alguma clausula ainda nao tiver acerto: a formula pode estar inconclusiva ou ja falsa, lembrando que inconcliusiva != unsat
+ */
+bool satisfas(int numeroClausulas, int numVariaveis, int formula[numeroClausulas][numVariaveis], int interpParcial[maxInterpParcial])
 {
     for (int i = 0; i < numeroClausulas; i++)
     {
         bool satisfeito = false;
 
-        for (int j = 0; j < numLiterais; j++)
+        for (int j = 0; j < numVariaveis; j++)
         {
             if (formula[i][j] == 2)
             {
@@ -76,13 +102,29 @@ bool satisfas(int numeroClausulas, int numLiterais, int formula[numeroClausulas]
     return true;
 }
 
-bool contradiz(int numClausulas,int numLiterais, int formula[numClausulas][numLiterais],int interpParcial[maxInterpParcial])
+/**
+ * @brief testa se a formula com a atual Ip Eh falsa: admite que cada clausula esta falsificada e busca
+ * salvar cada uma, procurando por:
+ * tautologias (2)
+ * literal da clausula cuja variavel ainda nao tem valor na ip (ip[j] == 0)
+ * coincidencia entre formula e ip para quando o elemento ip[j] != 0
+ * se alguma clausula nao puder ser salva, a formula eh contraditoria
+ *
+ * @param numClausulas numero de clausulas
+ * @param numVariaveis numero de variaveis
+ * @param formula matriz da formula
+ * @param interpParcial lista(Vetor) da IP
+ * @return true se a formula for realmente contraditoria
+ *
+ * @return false se nenhuma clausula estiver falsificada: a formula pode estar inconclusiva ou ja verdadeira, lembrando, novamente inconclusiva != unsat
+ */
+bool contradiz(int numClausulas,int numVariaveis, int formula[numClausulas][numVariaveis],int interpParcial[maxInterpParcial])
 {
      for (int i = 0; i < numClausulas; i++)
     {
         bool contradito = true;
 
-        for (int j = 0;j < numLiterais; j++)
+        for (int j = 0;j < numVariaveis; j++)
         {
             if (formula[i][j] == 2)
             {
@@ -111,48 +153,56 @@ bool contradiz(int numClausulas,int numLiterais, int formula[numClausulas][numLi
 }
 
 /**
- * @brief 
+ * @brief funcao recursiva que constroi a arvore binaria (cada chamada eh um no) e testa a formula com a ip atual
  * 
- * @param numClausulas 
- * @param numLiterais 
- * @param formula 
- * @param interpParcial 
- * @param header 
- * @param atual 
- * @param varIndxex 
- * @return true 
- * @return false 
+ * 
+ * @param numClausulas numero de clausulas 
+ * @param numVariaveis numero de variaveis
+ * @param formula matriz da formula
+ * @param header header da arvore
+ * @param atual no atual onde o novo no sera adicionado ou a esquerda (caso true) ou a direita (caso false)
+ * @param varIndxex index da variavel na Ip
+ * @return true se a formula for sat
+ * @return false se nao existir solucao a partir da ip atual (na primeira chamada, isso quer dizer unsat)
+ *
+ * se satisfaz e contradiz forem inconclusivos, chuta true e depois false para a variavel atual;
+ * se os dois chutes falharem, faz backtracking: zera a variavel e retorna false para o nivel de cima tentar outro valor
  */
-bool sat(int numClausulas,int numLiterais, int formula[numClausulas][numLiterais], arvore *header, node *atual, int varIndxex)
+bool sat(int numClausulas,int numVariaveis, int formula[numClausulas][numVariaveis], arvore *header, node *atual, int varIndxex)
 {
-    if (satisfas( numClausulas,  numLiterais, formula,header->interpretacaoParcial) )
+    if (satisfas( numClausulas,  numVariaveis, formula,header->interpretacaoParcial) )
     {
         return true;
     }
-    if (contradiz(numClausulas, numLiterais, formula,header->interpretacaoParcial))
+    if (contradiz(numClausulas, numVariaveis, formula,header->interpretacaoParcial))
     {
         return false;
     }
     
     node *nodeTrue = adicionarNode(header,atual,varIndxex, true);
-    if (sat(numClausulas,numLiterais,formula,header,nodeTrue,varIndxex+1))
+    if (sat(numClausulas,numVariaveis,formula,header,nodeTrue,varIndxex+1))
     {
         return true;
     }
     
     node *nodeFalse = adicionarNode(header,atual,varIndxex,false);
-    if (sat(numClausulas,numLiterais,formula,header,nodeFalse,varIndxex+1))
+    if (sat(numClausulas,numVariaveis,formula,header,nodeFalse,varIndxex+1))
     {
         return true;
     }
 
-    header->interpretacaoParcial[varIndxex] = 0; // backtrack?
+    header->interpretacaoParcial[varIndxex] = 0; // backtracking 
 
     return false;
     
 }
 
-
+/**
+ * @brief inicializa a header(arvore)
+ * 
+ * @param qVariaveis quantidade de variaveis na formula
+ * @return arvore* arvore (header) gereada
+ */
 arvore *initArvore(int qVariaveis)
 {
     arvore *arvoreNova = calloc(1,sizeof(arvore));
@@ -174,7 +224,13 @@ void mensagemDeErro(char mensagem[])
     printf("%s\n",mensagem);
     exit(EXIT_FAILURE);
 }
-void lerInput(int *literal, int *clausula)
+/**
+ * @brief le o input e extrai o numero de variaveis e clausulas
+ * 
+ * @param variavel ponteiro pra guardar o numero de varaiveis
+ * @param clausula ponteiro pra guardar o numero de clausualas
+ */
+void lerInput(int *variavel, int *clausula)
 {
     char comando;
     char comentario[comentarioMaximo];
@@ -196,10 +252,10 @@ void lerInput(int *literal, int *clausula)
             {
                 mensagemDeErro("Forma invalida! use 'cnf'");
             }
-            scanf("%d %d", literal, clausula);
-            if (*literal <= 0)
+            scanf("%d %d", variavel, clausula);
+            if (*variavel <= 0)
             {
-                mensagemDeErro("\n numero de lierais invalido! use um valor valido ");
+                mensagemDeErro("\n numero de variaveis invalido! use um valor valido ");
             }
             if (*clausula <= 0)
             {
@@ -212,11 +268,17 @@ void lerInput(int *literal, int *clausula)
 
     return;
 }
-
-void lerFormula(int numClausula, int numLiteral, int formula[numClausula][numLiteral])
+/**
+ * @brief le a formula e guarda na matriz
+ * 
+ * @param numClausula numero de clausulas
+ * @param numVariavel numero de variaveis
+ * @param formula matriz criada
+ */
+void lerFormula(int numClausula, int numVariavel, int formula[numClausula][numVariavel])
 {
     //inicializa a matriz com tudo zerado
-    memset(formula,0, numClausula * numLiteral * sizeof(int));
+    memset(formula,0, numClausula * numVariavel * sizeof(int));
 
     for (int i = 0; i < numClausula; i++)
     {
@@ -252,23 +314,29 @@ void lerFormula(int numClausula, int numLiteral, int formula[numClausula][numLit
         }
     }
 
-    if (tautologia)
+    if (tautologia)// no caso de tautologia, a clausula recebe a flag (2) pra ser tratada como sempre satisfeita em satisfaz() e contradiz()
     {
-        memset(formula[i], 0, numLiteral * sizeof(int));
-        formula[i][0] = 2;
+        memset(formula[i], 0, numVariavel * sizeof(int)); // limpa a clausula
+        formula[i][0] = 2; // flag tautologia
     }
     }
 
     return;
 }
 
-
-void imprimirFormula(int numClausulas, int numLiterais, int formula[numClausulas][numLiterais])
+/**
+ * @brief printa a formula na memoria
+ * 
+ * @param numClausulas numero de clausulas
+ * @param numVariaveis numero de variaveis(lit)
+ * @param formula matreiz onde a formula ta guardada
+ */
+void imprimirFormula(int numClausulas, int numVariaveis, int formula[numClausulas][numVariaveis])
 {
-    printf("=== Fórmula na Memória: ===\n");
+    printf("=== Formula na Memoria: ===\n");
     for (int i = 0; i < numClausulas; i++)
     {
-        for (int j = 0; j < numLiterais; j++)
+        for (int j = 0; j < numVariaveis; j++)
         {
             printf("%d ", formula[i][j]);
         }
@@ -279,11 +347,17 @@ void imprimirFormula(int numClausulas, int numLiterais, int formula[numClausulas
     return;
 }
 
+/**
+ * @brief printa o resultado do sat solver
+ * 
+ * @param resultado resultado do sat, se TRUE: SAT se FALSE: UNSAT 
+ * @param header 
+ */
 void imprimirResultado(bool resultado, arvore *header)
 {
     if (resultado)
     {
-        printf("SATISFIABLE\n");
+        printf("SAT\n");
         for (int i = 0; i < header->qVariaveis; i++)
         {
             if (header->interpretacaoParcial[i] != 0)
@@ -295,7 +369,7 @@ void imprimirResultado(bool resultado, arvore *header)
     }
     else
     {
-        printf("UNSATISFIABLE\n");
+        printf("UNSAT\n");
     }
 
     return;
@@ -303,18 +377,21 @@ void imprimirResultado(bool resultado, arvore *header)
 
 int main()
 {
-    int numLiterais;
+    int numVariaveis;
     int numClausulas;
 
-    lerInput(&numLiterais, &numClausulas);
+    lerInput(&numVariaveis, &numClausulas);
 
-    int formula[numClausulas][numLiterais];
-    lerFormula(numClausulas, numLiterais, formula);
-    imprimirFormula(numClausulas, numLiterais, formula);
+    int formula[numClausulas][numVariaveis];
+    lerFormula(numClausulas, numVariaveis, formula);
+    imprimirFormula(numClausulas, numVariaveis, formula);
 
-    arvore *header = initArvore(numLiterais);
-    bool resultado = sat(numClausulas, numLiterais, formula, header, header->raiz, 0);
+    arvore *header = initArvore(numVariaveis);
+    bool resultado = sat(numClausulas, numVariaveis, formula, header, header->raiz, 0);
     imprimirResultado(resultado, header);
 
     return 0;
 }
+
+
+// o segredo da inteligencia eh a boina italiana (favor nao confundir com francesa)
