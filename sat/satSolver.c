@@ -63,6 +63,24 @@ node *adicionarNode(arvore *header, node *atual, int indexVar, bool valor)
     }
     return novoNode;
 }
+
+/**
+ * @brief libera a arvore recursivamente
+ * 
+ * @param atual no atual, vai caminhando e liberand
+ */
+
+void liberarArvore(node *atual)
+{
+    if (atual == NULL)
+    {
+        return;
+    }
+    liberarArvore(atual->left);
+    liberarArvore(atual->right);
+    free(atual);
+}
+
 /**
  * @brief a funcao testa se a formula, com a atual interpretacao parcial, eh verdadeira, 
  * analogo a um gabarito, sendo a interpretacao parcial nossa folha de respostas a ser comparada
@@ -389,6 +407,9 @@ int main()
     arvore *header = initArvore(numVariaveis);
     bool resultado = sat(numClausulas, numVariaveis, formula, header, header->raiz, 0);
     imprimirResultado(resultado, header);
+
+    liberarArvore(header->raiz);
+    free(header);
 
     return 0;
 }
