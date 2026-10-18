@@ -1,0 +1,13 @@
+#ifndef Compressao_h
+#define Compressao_h
+
+#include "leitura.h"
+#include "criarArvore.h"
+
+void pre_ordem(huffmanNode* head, bufferDoArquivo* header, int *contador);
+bufferDoArquivo *criar_header(huffmanNode* head, int tamanho_arvore, int tamanho_lixo);
+bufferDoArquivo *criar_corpo(bufferDoArquivo* buffer, char* tabela[tamanhoHash], int* lixo);
+void escrever_arquivo(bufferDoArquivo* header, bufferDoArquivo* corpo, char* nome_arquivo);
+void comprimir(char* path); 
+
+#endif
