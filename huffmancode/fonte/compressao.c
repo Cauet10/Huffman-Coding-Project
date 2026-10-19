@@ -140,16 +140,26 @@ bufferDoArquivo *criar_corpo(bufferDoArquivo* original, char* tabela[tamanhoHash
  */
 void escrever_arquivo(bufferDoArquivo* header, bufferDoArquivo* corpo, char* nome_arquivo_original)
 {
-    char* nome_arquivo_comprimido = strcat(nome_arquivo_original, ".huff");
-    if(nome_arquivo_comprimido == NULL)
+    size_t n = strlen(nome_arquivo_original) + strlen(".huff") + 1;
+    char* nome_arquivo_comprimido = malloc(n);
+    if (nome_arquivo_comprimido == NULL)
     {
         fprintf(stderr, "Erro: falha de alocacao de memoria.\n");
         return;
     }
+    snprintf(nome_arquivo_comprimido, n, "%s.huff", nome_arquivo_original);
+
     FILE* fp = fopen(nome_arquivo_comprimido, "wb");
+    if (fp == NULL)
+    {
+        perror("fopen");
+        free(nome_arquivo_comprimido);
+        return;
+    }
     fwrite(header->bytes, 1, header->tamanho, fp);
     fwrite(corpo->bytes, 1, corpo->tamanho, fp);
     fclose(fp);
+    free(nome_arquivo_comprimido);
 }
 
 /* Libera um buffer e seus bytes. */
