@@ -4,6 +4,10 @@
 
 
 #define headerSize 2
+
+//pastas de onde as entradas sao lidas e pra onde as saidas vao (relativas a pasta huffmancode)
+#define pastaEntrada "inputs/"
+#define pastaSaida "outputs/"
 #define byteSize 8
 #define totaldeBytes 256
 

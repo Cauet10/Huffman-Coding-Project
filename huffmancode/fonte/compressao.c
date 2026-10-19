@@ -57,9 +57,8 @@ bufferDoArquivo *criar_header(huffmanNode* head, int tamanho_arvore, int tamanho
 {
     if(head == NULL) return initBuffer(0); //arquivo vazio
 
+    //tinha um segundo initBuffer aqui que sobrescrevia esse e vazava memoria, tirei
     bufferDoArquivo *header = initBuffer(headerSize + tamanho_arvore);
-
-    header = initBuffer(headerSize + tamanho_arvore);
     *(unsigned char*)(header->bytes) = *(unsigned char*)(header->bytes) | tamanho_lixo << 5;
     *(unsigned char*)(header->bytes+1) = *(unsigned char*)(header->bytes+1) | tamanho_arvore;
     *(unsigned char*)(header->bytes) = *(unsigned char*)(header->bytes) | tamanho_arvore >> 8; //pega apenas os bits junto com o lixo
@@ -140,21 +139,22 @@ bufferDoArquivo *criar_corpo(bufferDoArquivo* original, char* tabela[tamanhoHash
  */
 void escrever_arquivo(bufferDoArquivo* header, bufferDoArquivo* corpo, char* nome_arquivo_original)
 {
-    size_t n = strlen(nome_arquivo_original) + strlen(".huff") + 1;
+    //o .huff agora vai pra pasta de saida, entao reservo espaco pro nome dela tambem
+    size_t n = strlen(pastaSaida) + strlen(nome_arquivo_original) + strlen(".huff") + 1;
     char* nome_arquivo_comprimido = malloc(n);
     if (nome_arquivo_comprimido == NULL)
     {
         fprintf(stderr, "Erro: falha de alocacao de memoria.\n");
         return;
     }
-    snprintf(nome_arquivo_comprimido, n, "%s.huff", nome_arquivo_original);
+    snprintf(nome_arquivo_comprimido, n, "%s%s.huff", pastaSaida, nome_arquivo_original);
 
     FILE* fp = fopen(nome_arquivo_comprimido, "wb");
+    //se a pasta de saida nao existir o fopen falha, ai encerro com a mensagemDeErro
     if (fp == NULL)
     {
-        perror("fopen");
         free(nome_arquivo_comprimido);
-        return;
+        mensagemDeErro("erro ao criar o arquivo .huff (a pasta outputs existe?)");
     }
     fwrite(header->bytes, 1, header->tamanho, fp);
     fwrite(corpo->bytes, 1, corpo->tamanho, fp);
@@ -205,6 +205,12 @@ void comprimir(char* path)
     escape_char += (hash->frequencia['*'] > 0);
     escape_char += (hash->frequencia['\\'] > 0);
     int tamanho_arvore = (2 * hash->tamanhoAtual) - 1 + escape_char;
+    //se so tem um tipo de byte, a criarArvoreDeHuffman bota uma folha ficticia, entao a arvore tem 3 nos e nao 1
+    //o +2 eh a folha ficticia + o no de fusao (ela eh 0 ou 1, entao nunca precisa de escape)
+    if (hash->tamanhoAtual == 1)
+    {
+        tamanho_arvore += 2;
+    }
     bufferDoArquivo* header = criar_header(arvore, tamanho_arvore, lixo);
     aniquilarHash(hash);
 

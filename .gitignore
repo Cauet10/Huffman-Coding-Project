@@ -4,3 +4,7 @@
 build/
 *.huff
 testes_leitura/
+huffmancode/inputs/*
+!huffmancode/inputs/.gitkeep
+huffmancode/outputs/*
+!huffmancode/outputs/.gitkeep

@@ -197,6 +197,20 @@ void escrever(bufferDoArquivo *arquivo, char *nome_arquivo)
     }
 }
 
+//libera a arvore de descompressao em pos-ordem: primeiro os filhos, depois o valor e o proprio no
+//se eu liberasse o no antes, perderia os ponteiros pros filhos
+void liberar_arvore_descomp(descomp_node *no)
+{
+    if (no == NULL)
+    {
+        return;
+    }
+    liberar_arvore_descomp(no->left);
+    liberar_arvore_descomp(no->right);
+    free(no->valor);
+    free(no);
+}
+
 /**
  * @brief descomprime um arquivo .huff
  * 
@@ -207,16 +221,34 @@ void descomprimir(char *caminho)
     bufferDoArquivo *caminho_arquivo = lerArquivo(caminho);
     unsigned char *bytes = (unsigned char*) caminho_arquivo->bytes;
 
-    int tam_lixo = tamanho_lixo(bytes);
-    int tam_arvore = tamanho_arvore(bytes);
-    int i = 0;
+    bufferDoArquivo *buffer_saida;
 
-    descomp_node *raiz = criar_arvore_descomp(bytes, tam_arvore, &i);
-    bufferDoArquivo *buffer_saida = fazer_buffer_descomp(caminho_arquivo, raiz, tam_lixo, tam_arvore);
+    //.huff vazio (veio de um arquivo vazio): nao tem cabecalho pra ler, bytes eh NULL e dava segfault
+    //entao eu so gero um buffer vazio e o escrever cria o arquivo de saida vazio
+    if (caminho_arquivo->tamanho == 0)
+    {
+        buffer_saida = initBuffer(0);
+    }
+    else
+    {
+        int tam_lixo = tamanho_lixo(bytes);
+        int tam_arvore = tamanho_arvore(bytes);
+        int i = 0;
+
+        descomp_node *raiz = criar_arvore_descomp(bytes, tam_arvore, &i);
+        buffer_saida = fazer_buffer_descomp(caminho_arquivo, raiz, tam_lixo, tam_arvore);
+        //a arvore so era necessaria pra traduzir os bits, ja posso liberar
+        liberar_arvore_descomp(raiz);
+    }
 
     char* baseArquivo = basename(caminho);
-    char nomeArquivo_de_saida[strlen(baseArquivo) - 4];
-    strncpy(nomeArquivo_de_saida, baseArquivo, strlen(baseArquivo) - 5);
-    nomeArquivo_de_saida[strlen(baseArquivo)- 5] = '\0';
+    //o arquivo descomprimido vai pra pasta de saida: pastaSaida + nome sem os 5 chars do ".huff"
+    int tamanhoNome = strlen(baseArquivo) - 5;
+    char nomeArquivo_de_saida[strlen(pastaSaida) + tamanhoNome + 1];
+    snprintf(nomeArquivo_de_saida, sizeof(nomeArquivo_de_saida), "%s%.*s", pastaSaida, tamanhoNome, baseArquivo);
     escrever(buffer_saida, nomeArquivo_de_saida);
+
+    //depois de escrever, os dois buffers nao servem mais
+    exterminarBuffer(caminho_arquivo);
+    exterminarBuffer(buffer_saida);
 }
