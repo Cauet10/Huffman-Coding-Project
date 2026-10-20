@@ -4,6 +4,7 @@
 
 #define draw 1000 //number of draws to be done and registered
 #define max_value 1000000 //drawn numbers go from 1 to 1000000
+#define trials 10 //number of different random structures averaged for each n
 
 //LIST PART
 typedef struct node
@@ -15,12 +16,6 @@ typedef struct node
 //adds item at the beginning of the list
 void list_add(int item, node** head)
 {
-    node* current = *head;
-    while(current != NULL)
-    {
-        if(current->item == item) return;
-        current = current->next;
-    }
     node* new_node = (node*) malloc(sizeof(node));
     new_node->item = item;
     new_node->next = *head;
@@ -115,48 +110,51 @@ void free_tree(binary_tree* tree)
 //MAIN
 int main()
 {
-    srand(time(NULL)); //initializes rand() with the current time, so each execution draws different numbers
+    srand(time(NULL));
 
-    //creates file and writes columns names
     FILE* csv = fopen("dados.csv", "w");
-    fprintf(csv, "n,sorteio,numero,comp_lista,comp_arvore\n");
+    fprintf(csv, "n,comp_lista,comp_arvore\n");
 
-    for(int k = 1; k <= 1000; k++)
+    for(int n = 1; n <= 1000; n++)
     {
-        int n = k; //number of items in each struct for this loop
-        int* values = (int*) malloc(n * sizeof(int)); //will store all the items for the list and tree.
-        node* list = NULL;
-        binary_tree* tree = NULL;
+        long long total_list = 0, total_tree = 0; //number of comparisons accumulated throughout the iterations with 'trials'.
 
-        //new random numbers are put in the list and tree until both have exactly 'n' items.
-        int count = 0;
-        while(count < n)
+        for(int t = 0; t < trials; t++) //repeats 10 times each iteration of n;
         {
-            int value = rand() % max_value + 1; //random drawn number
-            long long unused = 0;
-            if(tree_search(value, tree, &unused) == NULL) //skips numbers that are already stored
+            int* values = (int*) malloc(n * sizeof(int));
+            node* list = NULL;
+            binary_tree* tree = NULL;
+
+            int count = 0; //keeps track of quantitty of items in values.
+            while(count < n)
             {
-                values[count++] = value;
-                list_add(value, &list);
-                tree_add(value, &tree);
+                int value = rand() % max_value + 1; //draws random value.                   
+                long long unused = 0;
+                if(tree_search(value, tree, &unused) == NULL) //searches through the tree to check if the item is already there. if so, doesn't put it in the list.
+                {
+                    values[count++] = value;
+                    list_add(value, &list);
+                    tree_add(value, &tree);
+                }
             }
+
+            //searches every stored item and accumulates the comparisons
+            for(int i = 0; i < n; i++)
+            {
+                list_search(values[i], list, &total_list);
+                tree_search(values[i], tree, &total_tree);
+            }
+
+            free_list(list);
+            free_tree(tree);
+            free(values);
         }
 
-        //random numbers are drawn for a search on the list and on the tree exactly 'draw' times.
-        for(int s = 1; s <= draw; s++)
-        {
-            int number = values[rand() % n]; 
-            long long comps_list = 0, comps_tree = 0;
-            list_search(number, list, &comps_list);
-            tree_search(number, tree, &comps_tree);
-            fprintf(csv, "%d,%d,%d,%lld,%lld\n", n, s, number, comps_list, comps_tree);
-        }
+        double avg_list = (double) total_list / ((double) trials * n);
+        double avg_tree = (double) total_tree / ((double) trials * n);
+        fprintf(csv, "%d,%.4f,%.4f\n", n, avg_list, avg_tree);
 
         printf("n = %d done\n", n);
-
-        free_list(list);
-        free_tree(tree);
-        free(values);
     }
 
     fclose(csv);
