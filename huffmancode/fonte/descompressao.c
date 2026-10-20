@@ -49,13 +49,13 @@ descomp_node *criar_no_descomp(void *byte, bool eh_folha)
     descomp_node *novoNo = (descomp_node*) malloc(sizeof(descomp_node));
     if (novoNo == NULL)
     {
-        mensagemDeErro("Erro na alocação de memória do nó de descompressão");
+        mensagemDeErro("Erro na alocacao de memoria do no de descompressao");
     }
 
     novoNo->valor = malloc(1);
     if (novoNo->valor == NULL)
     {
-        mensagemDeErro("Erro na alocação de memória do valor do nó de descompressão");
+        mensagemDeErro("Erro na alocacao de memoria do valor do no de descompressao");
     }
     memcpy(novoNo->valor, byte, 1);
 
@@ -186,14 +186,14 @@ void escrever(bufferDoArquivo *arquivo, char *nome_arquivo)
     FILE *descomp_arquivo = fopen(nome_arquivo, "wb"); //Faz uma escrita binária do arquivo
     if (descomp_arquivo == NULL)
     {
-        mensagemDeErro("Erro durante a criação de um novo arquivo");
+        mensagemDeErro("Erro durante a criacao de um novo arquivo");
     }
     size_t count = fwrite(arquivo->bytes, 1, arquivo->tamanho, descomp_arquivo);
     fclose(descomp_arquivo);
 
     if (count < arquivo->tamanho)
     {
-        mensagemDeErro("Erro na função de escrita");
+        mensagemDeErro("Erro na funcao de escrita");
     }
 }
 

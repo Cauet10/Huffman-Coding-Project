@@ -25,14 +25,16 @@ void pre_ordem(huffmanNode* head, bufferDoArquivo* header, int *contador)
     {
         if(*(unsigned char*)(head->valor) == '*' || *(unsigned char*)(head->valor) == '\\') //verifica se a folha é uma barra ou asterisco. necessario para nao confundir com nó interno ou caracter de escape.
         {
-            *(unsigned char*)(header->bytes + headerSize + *contador) = *(unsigned char*)(header->bytes + headerSize + *contador) | '\\';
+            *(unsigned char*)(header->bytes + headerSize + *contador) |= '\\';
             (*contador)++;
         }
-        *(unsigned char*)(header->bytes + headerSize + *contador) = *(unsigned char*)(header->bytes + headerSize + *contador) | *(unsigned char*)(head->valor);
+
+        *(unsigned char*)(header->bytes + headerSize + *contador) |= *(unsigned char*)(head->valor);
+        
     }
     else //nó interno
     {
-        *(unsigned char*)(header->bytes + headerSize + *contador) = *(unsigned char*)(header->bytes + headerSize + *contador) | '*';
+        *(unsigned char*)(header->bytes + headerSize + *contador) |= '*';
     }
     (*contador)++;
     pre_ordem(head->left, header, contador);

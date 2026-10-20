@@ -11,7 +11,7 @@
 void imprimirMenu()
 {
     printf("\n--------------------------\n");
-    printf("ESCOLHA UMA OPÇÃO:\n[1] - COMPACTAR ARQUIVO\n[2] - DESCOMPACTAR ARQUIVO\n[3] - SAIR");
+    printf("ESCOLHA UMA OPCAO:\n[1] - COMPACTAR ARQUIVO\n[2] - DESCOMPACTAR ARQUIVO\n[3] - SAIR");
     printf("\n--------------------------\n");
 }
 
@@ -46,7 +46,7 @@ void chamarDescomprimir()
     tamanho = strlen(nome);
     if (tamanho <= 5 || strcmp(nome + tamanho - 5, ".huff") != 0)
     {
-        mensagemDeErro("O arquivo precisa ter extensão .huff!");
+        mensagemDeErro("O arquivo precisa ter extensao .huff!");
     }
 
     snprintf(caminho, sizeof(caminho), "%s%s", pastaSaida, nome);
@@ -78,7 +78,7 @@ int main()
             case 3:
                 exit(0);
             default:
-                mensagemDeErro("Opção inválida");
+                mensagemDeErro("Opcao invalida");
         }
     }
 }
