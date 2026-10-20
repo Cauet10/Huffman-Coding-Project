@@ -12,7 +12,8 @@ int vet[MAX], tree[4 * MAX]; // vetor inicial e árvore, multiplicar MAX por 4 g
 /**
  * @brief soma o filho esquerdo e o direito e retorna o valor do nó pai 
  * 
- * @param left se refere ao filho esquerdo e @param right se refere ao filho direito
+ * @param left se refere ao filho esquerdo
+ * @param right se refere ao filho direito
  * 
  * @return retorna a soma do filho esquerdo e do filho direito
  */
@@ -25,23 +26,23 @@ int soma(int left, int right)
  * @brief constroi a árvore de forma recursiva a partir do vetor inicial O(n)
  * 
  * @param node indice do nó atual, onde seus filhos são left = 2 * node + 1 e right = 2 * node + 2
- * @param l limite esquerdo do segmento representado pelo nó
- * @param r limite direito do segmento representado pelo nó
+ * @param left limite esquerdo do segmento representado pelo nó
+ * @param right limite direito do segmento representado pelo nó
  */
-void build(int node, int l, int r)
+void build(int node, int left, int right)
 {
     //Caso base: quando o nó é uma folha
-    if (l == r)
+    if (left == right)
     {
-        tree[node] = vet[l];
+        tree[node] = vet[left];
         return;
     }
 
     //Ponto médio que divide o segmento em dois, serve para calcular os limites dos nós filhos
-    int mid = (l + r) / 2;
+    int mid = (left + right) / 2;
 
-    build(2 * node + 1, l, mid); //Constroi o filho esquerdo
-    build(2 * node + 2, mid + 1, r); //Constroi o filho direito
+    build(2 * node + 1, left, mid); //Constroi o filho esquerdo
+    build(2 * node + 2, mid + 1, right); //Constroi o filho direito
 
     //Calcula o valor do nó atual baseado no valor dos filhos
     tree[node] = soma(tree[2 * node + 1], tree[2 * node + 2]);
@@ -51,31 +52,31 @@ void build(int node, int l, int r)
  * @brief substitui o valor 'idx' por 'v' e refaz os nós afetados O(log n)
  * 
  * @param node indice do nó atual
- * @param tl limite esquerdo do segmento representado pelo nó (tree left)
- * @param tr limite direito do segmento representado pelo nó (tree right)
- * @param idx posição original que será alterada
- * @param v novo valor da posição atual
+ * @param treeLeft limite esquerdo do segmento representado pelo nó (tree left)
+ * @param treeRight limite direito do segmento representado pelo nó (tree right)
+ * @param index posição original que será alterada
+ * @param valorNovo novo valor da posição atual
  */
-void update(int node, int tl, int tr, int idx, int v)
+void update(int node, int treeLeft, int treeRight, int index, int valorNovo)
 {
     //Caso base: chegou no nó correspondente a idx
-    if (tl == tr)
+    if (treeLeft == treeRight)
     {
-        tree[node] = v;
+        tree[node] = valorNovo;
         return;
     }
 
     //Ponto médio que divide o segmento em dois, serve para calcular os limites dos nós filhos
-    int mid = (tl + tr) / 2;
+    int mid = (treeLeft + treeRight) / 2;
 
     //Verifica em que parte do segmento idx se encontra
-    if (tl <= idx && idx <= mid)
+    if (treeLeft <= index && index <= mid)
     {
-        update(2 * node + 1, tl, mid, idx, v); //idx está na esquerda do segmento
+        update(2 * node + 1, treeLeft, mid, index, valorNovo); //idx está na esquerda do segmento
     }
     else
     {
-        update(2 * node + 2, mid + 1, tr, idx, v); //idx está na direita do segmento
+        update(2 * node + 2, mid + 1, treeRight, index, valorNovo); //idx está na direita do segmento
     }
 
     //Recalcula o valor do nó baseado no valor dos seus filhos
@@ -86,30 +87,30 @@ void update(int node, int tl, int tr, int idx, int v)
  * @brief retorna a soma dos elementos do vetor dentro de um intervalo O(log n)
  * 
  * @param node indice do nó atual
- * @param tl limite esquerdo do segmento representado pelo nó
- * @param tr limite direito do segmento representado pelo nó
- * @param l limite esquerdo do intervalo
- * @param r limite direito do intervalo
+ * @param treeLeft limite esquerdo do segmento representado pelo nó
+ * @param treeRight limite direito do segmento representado pelo nó
+ * @param left limite esquerdo do intervalo
+ * @param right limite direito do intervalo
  * 
  * @return retorna a soma dos elementos do vetor no intervalo [l, r]
  */
-int query(int node, int tl, int tr, int l, int r)
+int query(int node, int treeLeft, int treeRight, int left, int right)
 {
     //Segmento de nó fora do intervalo retorna NEUTRO
-    if (r < tl || l > tr)
+    if (right < treeLeft || left > treeRight)
     {
         return NEUTRO;
     }
 
     //Segmento dentro do intervalo retorna a resposta guardada no nó
-    if (l <= tl  && r >= tr)
+    if (left <= treeLeft  && right >= treeRight)
     {
         return tree[node];
     }
 
     //Divide e soma as respostas dos dois filhos
-    int mid = (tl + tr) / 2;
-    return soma(query(2 * node + 1, tl, mid, l, r), query(2 * node + 2, mid + 1, tr, l, r));
+    int mid = (treeLeft + treeRight) / 2;
+    return soma(query(2 * node + 1, treeLeft, mid, left, right), query(2 * node + 2, mid + 1, treeRight, left, right));
 }
 
 int main()
@@ -120,7 +121,7 @@ int main()
 
     for (int i = 0; i < n; i++)
     {
-        scanf("%d", &vetor);
+        scanf("%d", &vetor[i]);
         vet[i] = vetor[i];
     }
 
