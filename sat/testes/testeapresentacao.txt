@@ -1,0 +1,1 @@
+c comando pra windos Get-Content testes\testeapresentacao.txt | .\sat.exe   

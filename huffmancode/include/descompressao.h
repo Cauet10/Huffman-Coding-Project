@@ -18,6 +18,7 @@ bool bit_i_esta_definido(unsigned char byte, int i);
 bufferDoArquivo *fazer_buffer_descomp(bufferDoArquivo *buffer, descomp_node *raiz, int lixo, int tamanho_arvore);
 void descomprimir(char *caminho);
 void escrever(bufferDoArquivo *buffer, char *nome_arquivo);
+void liberar_arvore_descomp(descomp_node *no);
 
 
 #endif
