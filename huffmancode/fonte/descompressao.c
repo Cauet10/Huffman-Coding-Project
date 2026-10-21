@@ -71,25 +71,25 @@ descomp_node *criar_no_descomp(void *byte, bool eh_folha)
  * 
  * @param ponteiro_arquivo é um array que contem os bytes do arquivo
  * @param tamanho é o tamanho da arvore
- * @param i é um indice que aponta para o byte que está sendo lido
+ * @param index é um indice que aponta para o byte que está sendo lido
  * 
  * @return retorna o nó raiz da arvore criada 
  */
-descomp_node *criar_arvore_descomp(unsigned char *ponteiro_arquivo, int tamanho, int *i)
+descomp_node *criar_arvore_descomp(unsigned char *ponteiro_arquivo, int tamanho, int *index)
 {
-    if ((*i) >= tamanho)
+    if ((*index) >= tamanho)
     {
         return NULL;
     }
 
-    unsigned char byte = ponteiro_arquivo[*i + headerSize];
-    (*i)++;
+    unsigned char byte = ponteiro_arquivo[*index + headerSize];
+    (*index)++;
 
     descomp_node *no;
     if (byte == '\\')
     {
-        byte = ponteiro_arquivo[*i + headerSize];
-        (*i)++;
+        byte = ponteiro_arquivo[*index + headerSize];
+        (*index)++;
         no = criar_no_descomp(&byte, true);
     }
     else if (byte != '*')
@@ -104,8 +104,8 @@ descomp_node *criar_arvore_descomp(unsigned char *ponteiro_arquivo, int tamanho,
     //Criação de sub-arvores em pré-ordem
     if (!no->folha)
     {
-        no->left = criar_arvore_descomp(ponteiro_arquivo, tamanho, i);
-        no->right = criar_arvore_descomp(ponteiro_arquivo, tamanho, i);
+        no->left = criar_arvore_descomp(ponteiro_arquivo, tamanho, index);
+        no->right = criar_arvore_descomp(ponteiro_arquivo, tamanho, index);
     }
     return no;
 }
@@ -114,13 +114,13 @@ descomp_node *criar_arvore_descomp(unsigned char *ponteiro_arquivo, int tamanho,
  * @brief checa se o i-ésimo bit de um byte está definido (1) ou não (0)
  * 
  * @param byte é o byte que será checado
- * @param i é o indice do bit a ser checado (de 0 a 7)
+ * @param index é o indice do bit a ser checado (de 0 a 7)
  * 
  * @return retorna true se o i-ésimo bit estiver definido, se não, retorna falso
  */
-bool bit_i_esta_definido(unsigned char byte, int i)
+bool bit_i_esta_definido(unsigned char byte, int index)
 {
-    unsigned char mascara = 0b10000000 >> i;
+    unsigned char mascara = 0b10000000 >> index;
     return byte & mascara;
 }
 
@@ -233,9 +233,9 @@ void descomprimir(char *caminho)
     {
         int tam_lixo = tamanho_lixo(bytes);
         int tam_arvore = tamanho_arvore(bytes);
-        int i = 0;
+        int index = 0;
 
-        descomp_node *raiz = criar_arvore_descomp(bytes, tam_arvore, &i);
+        descomp_node *raiz = criar_arvore_descomp(bytes, tam_arvore, &index);
         buffer_saida = fazer_buffer_descomp(caminho_arquivo, raiz, tam_lixo, tam_arvore);
         //a arvore so era necessaria pra traduzir os bits, ja posso liberar
         liberar_arvore_descomp(raiz);
